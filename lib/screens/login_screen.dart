@@ -55,7 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     _passwordController.text,
                   );
                   if (user != null) {
-                    Navigator.pushReplacementNamed(context, '/dashboard');
+                    bool isAdmin = await _authService.isAdmin(user.uid);
+                    if (isAdmin) {
+                      Navigator.pushReplacementNamed(context, '/dashboard');
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Acceso no autorizado')),
+                      );
+                    }
                   }
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
