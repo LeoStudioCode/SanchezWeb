@@ -24,6 +24,14 @@ class ArticuloService {
     }
   }
 
+  Future<void> actualizarArticuloConMap(
+      String articuloID, Map<String, dynamic> data) async {
+    await FirebaseFirestore.instance
+        .collection('articulos')
+        .doc(articuloID)
+        .update(data);
+  }
+
   // 🔹 Eliminar artículo
   Future<void> eliminarArticulo(String articuloID) async {
     try {

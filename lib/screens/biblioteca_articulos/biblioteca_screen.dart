@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sanchez_web/services/articulo_service.dart';
 import 'package:sanchez_web/models/articulo.dart';
-import 'editar_articulo_screen.dart'; // Asegúrate de crear esta pantalla
-import 'agregar_articulo_screen.dart'; // Asegúrate de crear esta también
+import 'editar_articulo_screen.dart';
+import 'agregar_articulo_screen.dart';
 
 class BibliotecaScreen extends StatefulWidget {
   @override
@@ -46,7 +46,7 @@ class _BibliotecaScreenState extends State<BibliotecaScreen> {
                 context,
                 MaterialPageRoute(builder: (_) => AgregarArticuloScreen()),
               );
-              _cargarArticulos(); // Refresh on return
+              _cargarArticulos();
             },
           ),
         ],
@@ -58,14 +58,14 @@ class _BibliotecaScreenState extends State<BibliotecaScreen> {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(
-              child: Text(
+              child: SelectableText(
                 'Error al cargar artículos:\n${snapshot.error}',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.red),
               ),
             );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No hay artículos'));
+            return Center(child: SelectableText('No hay artículos'));
           }
 
           final articulos = snapshot.data!;
@@ -76,52 +76,74 @@ class _BibliotecaScreenState extends State<BibliotecaScreen> {
               final articulo = articulos[index];
 
               return Card(
-                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: 150, // Puedes subir más si quieres aún más grande
-                      height: 200,
-                      color: Colors.grey[
-                          200], // Fondo para relleno si la imagen no llena
-                      child: Image.network(
-                        articulo.imagen,
-                        fit: BoxFit
-                            .fill, // Mostrar la imagen completa sin recortarla
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'images/default_image.png',
-                            fit: BoxFit.contain,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  title: Text(articulo.nombre),
-                  subtitle: Text(
-                      '${articulo.descripcion}\nCantidad: ${articulo.cantidad}'),
-                  isThreeLine: true,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  EditarArticuloScreen(articulo: articulo),
+                      Center(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: 300,
+                            height: 300,
+                            color: Colors.grey[200],
+                            child: Image.network(
+                              articulo.imagen,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'images/default_image.png',
+                                  fit: BoxFit.contain,
+                                );
+                              },
                             ),
-                          );
-                          _cargarArticulos(); // Refresh
-                        },
+                          ),
+                        ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () =>
-                            _confirmarEliminacion(context, articulo),
+                      SizedBox(height: 12),
+                      SelectableText(
+                        articulo.nombre,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      SelectableText(
+                        articulo.descripcion,
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(height: 6),
+                      SelectableText(
+                        'Cantidad: ${articulo.cantidad}',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      EditarArticuloScreen(articulo: articulo),
+                                ),
+                              );
+                              _cargarArticulos();
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () =>
+                                _confirmarEliminacion(context, articulo),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -138,8 +160,9 @@ class _BibliotecaScreenState extends State<BibliotecaScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('¿Eliminar artículo?'),
-        content: Text('¿Estás seguro de eliminar "${articulo.nombre}"?'),
+        title: SelectableText('¿Eliminar artículo?'),
+        content:
+            SelectableText('¿Estás seguro de eliminar "${articulo.nombre}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

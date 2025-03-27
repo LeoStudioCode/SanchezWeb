@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sanchez_web/services/articulo_service.dart';
 import 'package:sanchez_web/models/articulo.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:typed_data';
 
 class AgregarArticuloScreen extends StatefulWidget {
   @override
@@ -14,33 +17,52 @@ class _AgregarArticuloScreenState extends State<AgregarArticuloScreen> {
   final _nombreController = TextEditingController();
   final _descripcionController = TextEditingController();
   final _cantidadController = TextEditingController();
-  final _estatusController = TextEditingController();
-  final _imagenController = TextEditingController();
-
-  DateTime? _fechaAlta;
+  String _imagenUrl = '';
   DateTime? _fechaStock;
 
+  Future<void> _subirImagen() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+
+    if (result != null && result.files.single.bytes != null) {
+      final Uint8List fileBytes = result.files.single.bytes!;
+      final String fileName = result.files.single.name;
+
+      final ref = FirebaseStorage.instance.ref('articulos/$fileName');
+      await ref.putData(fileBytes);
+      final url = await ref.getDownloadURL();
+
+      setState(() {
+        _imagenUrl = url;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Imagen subida correctamente')),
+      );
+    }
+  }
+
   Future<void> _guardarArticulo() async {
-    if (_formKey.currentState!.validate() &&
-        _fechaAlta != null &&
-        _fechaStock != null) {
+    if (_formKey.currentState!.validate() && _fechaStock != null) {
       final nuevo = Articulo(
-        articuloID: '', // Se asigna en el servicio
+        articuloID: '',
         cantidad: int.parse(_cantidadController.text),
         descripcion: _descripcionController.text,
-        estatus: _estatusController.text,
-        fecAlta: _fechaAlta!,
+        estatus: 'Activo',
+        fecAlta: DateTime.now(),
         fecStock: _fechaStock!,
-        imagen: _imagenController.text,
+        imagen: _imagenUrl,
         nombre: _nombreController.text,
       );
 
       await _service.agregarArticulo(nuevo);
-      Navigator.pop(context); // Volver a la lista
+      Navigator.pop(context);
     }
   }
 
-  Future<void> _seleccionarFecha(BuildContext context, bool esAlta) async {
+  Future<void> _seleccionarFechaStock(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -49,11 +71,7 @@ class _AgregarArticuloScreenState extends State<AgregarArticuloScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (esAlta) {
-          _fechaAlta = picked;
-        } else {
-          _fechaStock = picked;
-        }
+        _fechaStock = picked;
       });
     }
   }
@@ -63,8 +81,6 @@ class _AgregarArticuloScreenState extends State<AgregarArticuloScreen> {
     _nombreController.dispose();
     _descripcionController.dispose();
     _cantidadController.dispose();
-    _estatusController.dispose();
-    _imagenController.dispose();
     super.dispose();
   }
 
@@ -87,6 +103,7 @@ class _AgregarArticuloScreenState extends State<AgregarArticuloScreen> {
               TextFormField(
                 controller: _descripcionController,
                 decoration: InputDecoration(labelText: 'Descripción'),
+                maxLines: 4,
               ),
               TextFormField(
                 controller: _cantidadController,
@@ -95,28 +112,31 @@ class _AgregarArticuloScreenState extends State<AgregarArticuloScreen> {
                 validator: (value) =>
                     value!.isEmpty ? 'Ingrese la cantidad' : null,
               ),
-              TextFormField(
-                controller: _estatusController,
-                decoration: InputDecoration(labelText: 'Estatus'),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: _subirImagen,
+                    child: Text('Subir Imagen'),
+                  ),
+                  SizedBox(width: 10),
+                  _imagenUrl.isNotEmpty
+                      ? Expanded(child: Text('Imagen cargada'))
+                      : SizedBox(),
+                ],
               ),
-              TextFormField(
-                controller: _imagenController,
-                decoration: InputDecoration(labelText: 'URL de Imagen'),
-              ),
+              if (_imagenUrl.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Image.network(_imagenUrl, height: 100),
+                ),
               SizedBox(height: 10),
-              ListTile(
-                title: Text(_fechaAlta == null
-                    ? 'Seleccionar Fecha de Alta'
-                    : 'Alta: ${_fechaAlta!.toLocal().toString().split(' ')[0]}'),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () => _seleccionarFecha(context, true),
-              ),
               ListTile(
                 title: Text(_fechaStock == null
                     ? 'Seleccionar Fecha de Stock'
                     : 'Stock: ${_fechaStock!.toLocal().toString().split(' ')[0]}'),
                 trailing: Icon(Icons.calendar_today),
-                onTap: () => _seleccionarFecha(context, false),
+                onTap: () => _seleccionarFechaStock(context),
               ),
               SizedBox(height: 20),
               ElevatedButton(

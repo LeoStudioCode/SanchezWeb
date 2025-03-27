@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:sanchez_web/services/articulo_service.dart';
 import 'package:sanchez_web/models/articulo.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 
 class EditarArticuloScreen extends StatefulWidget {
   final Articulo articulo;
@@ -18,9 +22,8 @@ class _EditarArticuloScreenState extends State<EditarArticuloScreen> {
   late TextEditingController _nombreController;
   late TextEditingController _descripcionController;
   late TextEditingController _cantidadController;
-  late TextEditingController _asesorController;
-  late TextEditingController _estatusController;
-  late TextEditingController _imagenController;
+  late String _estatus;
+  String? _imagenUrl;
 
   late DateTime _fechaAlta;
   late DateTime _fechaStock;
@@ -32,8 +35,8 @@ class _EditarArticuloScreenState extends State<EditarArticuloScreen> {
     _nombreController = TextEditingController(text: a.nombre);
     _descripcionController = TextEditingController(text: a.descripcion);
     _cantidadController = TextEditingController(text: a.cantidad.toString());
-    _estatusController = TextEditingController(text: a.estatus);
-    _imagenController = TextEditingController(text: a.imagen);
+    _estatus = a.estatus;
+    _imagenUrl = a.imagen;
     _fechaAlta = a.fecAlta;
     _fechaStock = a.fecStock;
   }
@@ -43,10 +46,44 @@ class _EditarArticuloScreenState extends State<EditarArticuloScreen> {
     _nombreController.dispose();
     _descripcionController.dispose();
     _cantidadController.dispose();
-    _asesorController.dispose();
-    _estatusController.dispose();
-    _imagenController.dispose();
     super.dispose();
+  }
+
+  Future<void> _subirImagen() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: false,
+        withData: true, // importante para WEB
+      );
+
+      if (result != null && result.files.single.bytes != null) {
+        Uint8List fileBytes = result.files.single.bytes!;
+        String fileName = result.files.single.name;
+
+        final storageRef =
+            FirebaseStorage.instance.ref().child('articulos/$fileName');
+        await storageRef.putData(fileBytes);
+
+        final downloadUrl = await storageRef.getDownloadURL();
+
+        setState(() {
+          _imagenUrl = downloadUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Imagen cargada correctamente")),
+        );
+      }
+    } catch (e) {
+      debugPrint('🔥 Error al subir imagen: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al subir imagen: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> _guardarCambios() async {
@@ -55,33 +92,19 @@ class _EditarArticuloScreenState extends State<EditarArticuloScreen> {
         articuloID: widget.articulo.articuloID,
         cantidad: int.parse(_cantidadController.text),
         descripcion: _descripcionController.text,
-        estatus: _estatusController.text,
+        estatus: _estatus,
         fecAlta: _fechaAlta,
         fecStock: _fechaStock,
-        imagen: _imagenController.text,
+        imagen: _imagenUrl ?? '',
         nombre: _nombreController.text,
       );
 
-      await _service.actualizarArticulo(actualizado);
-      Navigator.pop(context);
-    }
-  }
+      // Guardar campo fecUpdate
+      final map = actualizado.toMap();
+      map['fecUpdate'] = DateTime.now();
 
-  Future<void> _seleccionarFecha(BuildContext context, bool esAlta) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: esAlta ? _fechaAlta : _fechaStock,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        if (esAlta) {
-          _fechaAlta = picked;
-        } else {
-          _fechaStock = picked;
-        }
-      });
+      await _service.actualizarArticuloConMap(widget.articulo.articuloID, map);
+      Navigator.pop(context);
     }
   }
 
@@ -112,27 +135,40 @@ class _EditarArticuloScreenState extends State<EditarArticuloScreen> {
                 validator: (value) =>
                     value!.isEmpty ? 'Ingrese la cantidad' : null,
               ),
-              TextFormField(
-                controller: _estatusController,
+              DropdownButtonFormField<String>(
+                value: _estatus,
                 decoration: InputDecoration(labelText: 'Estatus'),
+                items: ['Activo', 'Inactivo']
+                    .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _estatus = value);
+                },
               ),
-              TextFormField(
-                controller: _imagenController,
-                decoration: InputDecoration(labelText: 'URL de Imagen'),
+              SizedBox(height: 12),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: _subirImagen,
+                    child: Text('Subir Imagen'),
+                  ),
+                  SizedBox(width: 10),
+                  _imagenUrl != null
+                      ? Expanded(child: Text('Imagen cargada'))
+                      : SizedBox(),
+                ],
               ),
+              if (_imagenUrl != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Image.network(_imagenUrl!, height: 100),
+                ),
               SizedBox(height: 10),
-              ListTile(
-                title: Text(
-                    'Alta: ${_fechaAlta.toLocal().toString().split(' ')[0]}'),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () => _seleccionarFecha(context, true),
-              ),
-              ListTile(
-                title: Text(
-                    'Stock: ${_fechaStock.toLocal().toString().split(' ')[0]}'),
-                trailing: Icon(Icons.calendar_today),
-                onTap: () => _seleccionarFecha(context, false),
-              ),
+              Text('Alta: ${_fechaAlta.toLocal().toString().split(' ')[0]}'),
+              Text('Stock: ${_fechaStock.toLocal().toString().split(' ')[0]}'),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _guardarCambios,
