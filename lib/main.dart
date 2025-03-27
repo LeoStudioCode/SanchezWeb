@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/dashboard': (context) => DashboardScreen(),
         '/biblioteca': (context) => BibliotecaScreen(),
-        '/almacen': (context) => AlmacenScreen(),
+        '/almacen': (context) => ArticulosXUsuarioScreen(),
         '/usuarios': (context) => UsuariosScreen(),
         '/reportes': (context) => ReportesScreen(),
         '/profile': (context) => ProfileScreen(),
