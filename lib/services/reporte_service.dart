@@ -21,4 +21,20 @@ class ReporteService {
       return snapshot.docs.map((doc) => Retirado.fromMap(doc.data())).toList();
     });
   }
+
+  Future<String> getUserName(String asesorId) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _db.collection('users').doc(asesorId).get();
+      if (userDoc.exists) {
+        Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+        return data['name'] ?? 'N/A';
+      } else {
+        return 'N/A';
+      }
+    } catch (e) {
+      print("Error obtaining user name: $e");
+      return 'N/A';
+    }
+  }
 }

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard'),
-      ),
       body: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
@@ -18,36 +16,70 @@ class DashboardScreen extends StatelessWidget {
             }
             return Padding(
               padding: const EdgeInsets.all(16.0),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+              child: StaggeredGrid.count(
+                crossAxisCount: 8,
+                crossAxisSpacing: 5,
+                mainAxisSpacing: 5,
                 children: <Widget>[
-                  DashboardTile(
-                      title: 'Grupo Sanchez', icon: Icons.business, route: '/'),
-                  DashboardTile(
-                      title: 'Usuario Logeado',
-                      icon: Icons.person,
-                      route: '/profile'),
-                  DashboardTile(
-                      title: 'Reportes',
-                      icon: Icons.assessment,
-                      route: '/reportes'),
-                  DashboardTile(
-                      title: 'Usuarios',
-                      icon: Icons.people,
-                      route: '/usuarios'),
-                  DashboardTile(
-                      title: 'Almacén', icon: Icons.store, route: '/almacen'),
-                  DashboardTile(
+                  StaggeredGridTile.count(
+                    crossAxisCellCount: 5,
+                    mainAxisCellCount: 2,
+                    child: DashboardTile(
+                      title: 'Grupo Sanchez',
+                      icon: Icons.business,
+                      route: '/',
+                    ),
+                  ),
+                  StaggeredGridTile.count(
+                    crossAxisCellCount: 3,
+                    mainAxisCellCount: 2,
+                    child: DashboardTile(
+                      title: 'Almacén',
+                      icon: Icons.store,
+                      route: '/almacen',
+                    ),
+                  ),
+                  StaggeredGridTile.count(
+                    crossAxisCellCount: 4,
+                    mainAxisCellCount: 2,
+                    child: DashboardTile(
                       title: 'Biblioteca de Artículos',
                       icon: Icons.library_books,
-                      route: '/biblioteca'),
+                      route: '/biblioteca',
+                    ),
+                  ),
+                  StaggeredGridTile.count(
+                    crossAxisCellCount: 4,
+                    mainAxisCellCount: 1,
+                    child: DashboardTile(
+                      title: 'Usuario Logeado: ${user.email}',
+                      icon: Icons.person,
+                      route: '/profile',
+                    ),
+                  ),
+                  StaggeredGridTile.count(
+                    crossAxisCellCount: 2,
+                    mainAxisCellCount: 1,
+                    child: DashboardTile(
+                      title: 'Reportes',
+                      icon: Icons.assessment,
+                      route: '/reportes',
+                    ),
+                  ),
+                  StaggeredGridTile.count(
+                    crossAxisCellCount: 2,
+                    mainAxisCellCount: 1,
+                    child: DashboardTile(
+                      title: 'Usuarios',
+                      icon: Icons.people,
+                      route: '/usuarios',
+                    ),
+                  ),
                 ],
               ),
             );
           }
-          return CircularProgressIndicator();
+          return Center(child: CircularProgressIndicator());
         },
       ),
     );

@@ -37,33 +37,52 @@ class UsuariosScreen extends StatelessWidget {
             return Center(child: Text('No hay usuarios disponibles.'));
           } else {
             final usuarios = snapshot.data!;
-            return ListView.builder(
+            return ListView.separated(
               itemCount: usuarios.length,
+              separatorBuilder: (context, index) => Divider(
+                color: AppColors.divider,
+                height: 1,
+              ),
               itemBuilder: (context, index) {
                 final usuario = usuarios[index];
-                return ListTile(
-                  title: Text(usuario.name),
-                  subtitle: Text(usuario.email),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit),
-                        onPressed: () {
-                          _showEditUserDialog(context, usuario);
-                        },
-                        iconSize: 30.0,
-                        color: AppColors.editButton, // Usa el color definido
+                return Card(
+                  elevation: 2,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    title: Text(
+                      usuario.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          _deleteUser(context, usuario);
-                        },
-                        iconSize: 30.0,
-                        color: AppColors.deleteButton, // Usa el color definido
-                      ),
-                    ],
+                    ),
+                    subtitle: Text(usuario.email),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () {
+                            _showEditUserDialog(context, usuario);
+                          },
+                          iconSize: 24.0,
+                          color: AppColors.editButton, // Usa el color definido
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _deleteUser(context, usuario);
+                          },
+                          iconSize: 24.0,
+                          color:
+                              AppColors.deleteButton, // Usa el color definido
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -107,6 +126,9 @@ class UsuariosScreen extends StatelessWidget {
               onPressed: () {
                 _usuarioService.deleteUsuario(usuario.uid);
                 Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Usuario eliminado')),
+                );
               },
               child: Text('Eliminar'),
             ),
