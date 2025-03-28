@@ -15,6 +15,11 @@ class ArticuloXUsuarioService {
     await _ref.doc(id).update(data);
   }
 
+  // 🔹 Crear artículoXusuario desde un Map (para pantallas rápidas)
+  Future<void> crear(Map<String, dynamic> data) async {
+    await _ref.add(data);
+  }
+
   // 🔹 Eliminar artículoXusuario por ID
   Future<void> eliminar(String id) async {
     await _ref.doc(id).delete();

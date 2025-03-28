@@ -3,6 +3,7 @@ import 'package:sanchez_web/models/unidad_almacen.dart';
 import 'package:sanchez_web/services/almacen_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sanchez_web/screens/almacen/asignar_usuario_screen.dart';
+import 'package:sanchez_web/screens/almacen/registrar_serial_screen.dart';
 
 class ArticulosXUsuarioScreen extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _ArticulosXUsuarioScreenState extends State<ArticulosXUsuarioScreen> {
   String _asesorSeleccionado = 'Inventario';
   Map<String, String> _nombresUsuarios = {}; // uid -> nombre
   Map<String, Map<String, String>> _datosArticulo =
-      {}; // articuloID -> {nombre, descripcion}
+      {}; // articuloID -> {nombre, descripcion, imagen}
 
   @override
   void initState() {
@@ -46,7 +47,8 @@ class _ArticulosXUsuarioScreenState extends State<ArticulosXUsuarioScreen> {
         for (var doc in snapshot.docs)
           doc.id: {
             'nombre': doc['nombre'] ?? '',
-            'descripcion': doc['descripcion'] ?? ''
+            'descripcion': doc['descripcion'] ?? '',
+            'imagen': doc['imagen'] ?? ''
           }
       };
     });
@@ -85,7 +87,25 @@ class _ArticulosXUsuarioScreenState extends State<ArticulosXUsuarioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Artículos por Usuario')),
+      appBar: AppBar(
+        title: Text('Artículos por Usuario'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CrearArticuloXUsuarioScreen(),
+                ),
+              );
+              setState(() {
+                _futureArticulos = _service.obtenerTodos();
+              });
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder<List<ArticuloXUsuario>>(
         future: _futureArticulos,
         builder: (context, snapshot) {
@@ -158,21 +178,26 @@ class _ArticulosXUsuarioScreenState extends State<ArticulosXUsuarioScreen> {
                           final nombre = datos['nombre'] ?? 'Sin nombre';
                           final descripcion =
                               datos['descripcion'] ?? 'Sin descripción';
+                          final imagen = datos['imagen'];
 
                           return Card(
                             margin: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             child: ListTile(
-                              title: Text('No. Serie: ${a.noSerie}'),
+                              leading: imagen != null && imagen.isNotEmpty
+                                  ? Image.network(imagen,
+                                      width: 50, height: 50, fit: BoxFit.cover)
+                                  : Icon(Icons.inventory, size: 40),
+                              title: SelectableText('No. Serie: ${a.noSerie}'),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Nombre: $nombre'),
-                                  Text('Descripción: $descripcion'),
-                                  Text('Estado: ${a.estado}'),
-                                  Text('Activo: ${a.noActivo}'),
+                                  SelectableText('Nombre: $nombre'),
+                                  SelectableText('Descripción: $descripcion'),
+                                  SelectableText('Estado: ${a.estado}'),
+                                  SelectableText('Activo: ${a.noActivo}'),
                                   if (a.observaciones.isNotEmpty)
-                                    Text('Obs: ${a.observaciones}'),
+                                    SelectableText('Obs: ${a.observaciones}'),
                                 ],
                               ),
                               trailing: Row(
