@@ -14,7 +14,7 @@ class ReportesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reportes'),
+        title: SelectableText('Reportes'),
         backgroundColor: Colors.transparent, // AppBar transparente
         elevation: 0, // Sin sombra
         actions: [
@@ -54,7 +54,7 @@ class ReportesScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            SelectableText(
               title,
               style: TextStyle(
                 fontSize: 18,
@@ -73,13 +73,13 @@ class ReportesScreen extends StatelessWidget {
   Widget _buildFoliosTable() {
     return StreamBuilder<List<Folio>>(
       stream: _reporteService.getFolios(),
-      builder: (context, snapshot) {
+      builder: (conSelectableText, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: SelectableText('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No hay datos disponibles'));
+          return Center(child: SelectableText('No hay datos disponibles'));
         } else {
           final folios = snapshot.data!;
           return SingleChildScrollView(
@@ -90,44 +90,46 @@ class ReportesScreen extends StatelessWidget {
                 return AppColors.secondary.withOpacity(0.7);
               }),
               columns: [
-                DataColumn(label: Text('Asesor')),
-                DataColumn(label: Text('Nombre')),
-                DataColumn(label: Text('Centro')),
-                DataColumn(label: Text('Fecha Alta')),
-                DataColumn(label: Text('Fecha Folio')),
-                DataColumn(label: Text('Fecha Instalado')),
-                DataColumn(label: Text('Folio ID')),
-                DataColumn(label: Text('Instalado')),
-                DataColumn(label: Text('Número Folio')),
-                DataColumn(label: Text('Problema')),
-                DataColumn(label: Text('Retirado')),
+                DataColumn(label: SelectableText('Asesor')),
+                DataColumn(label: SelectableText('Nombre')),
+                DataColumn(label: SelectableText('Centro')),
+                DataColumn(label: SelectableText('Fecha Alta')),
+                DataColumn(label: SelectableText('Fecha Folio')),
+                DataColumn(label: SelectableText('Fecha Instalado')),
+                DataColumn(label: SelectableText('Folio ID')),
+                DataColumn(label: SelectableText('Instalado')),
+                DataColumn(label: SelectableText('Número Folio')),
+                DataColumn(label: SelectableText('Problema')),
+                DataColumn(label: SelectableText('Retirado')),
               ],
               rows: folios.map((folio) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(folio.asesor)),
+                    DataCell(SelectableText(folio.asesor)),
                     DataCell(FutureBuilder<String>(
                       future: _reporteService.getUserName(folio.asesor),
-                      builder: (context, snapshot) {
+                      builder: (conSelectableText, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return CircularProgressIndicator();
                         } else if (snapshot.hasError) {
-                          return Text('Error');
+                          return SelectableText('Error');
                         } else {
-                          return Text(snapshot.data ?? 'N/A');
+                          return SelectableText(snapshot.data ?? 'N/A');
                         }
                       },
                     )),
-                    DataCell(Text(folio.centro)),
-                    DataCell(Text(folio.formatTimestamp(folio.fecAlta))),
-                    DataCell(Text(folio.fecFolio)),
-                    DataCell(Text(folio.formatTimestamp(folio.fecInstalado))),
-                    DataCell(Text(folio.folioID)),
-                    DataCell(Text(folio.instalado)),
-                    DataCell(Text(folio.numFolio)),
-                    DataCell(Text(folio.problema)),
-                    DataCell(Text(folio.retirado)),
+                    DataCell(SelectableText(folio.centro)),
+                    DataCell(
+                        SelectableText(folio.formatTimestamp(folio.fecAlta))),
+                    DataCell(SelectableText(folio.fecFolio)),
+                    DataCell(SelectableText(
+                        folio.formatTimestamp(folio.fecInstalado))),
+                    DataCell(SelectableText(folio.folioID)),
+                    DataCell(SelectableText(folio.instalado)),
+                    DataCell(SelectableText(folio.numFolio)),
+                    DataCell(SelectableText(folio.problema)),
+                    DataCell(SelectableText(folio.retirado)),
                   ],
                 );
               }).toList(),
@@ -141,13 +143,13 @@ class ReportesScreen extends StatelessWidget {
   Widget _buildInstaladosTable() {
     return StreamBuilder<List<Instalado>>(
       stream: _reporteService.getInstalados(),
-      builder: (context, snapshot) {
+      builder: (conSelectableText, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: SelectableText('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No hay datos disponibles'));
+          return Center(child: SelectableText('No hay datos disponibles'));
         } else {
           final instalados = snapshot.data!;
           return SingleChildScrollView(
@@ -158,35 +160,36 @@ class ReportesScreen extends StatelessWidget {
                 return AppColors.secondary.withOpacity(0.7);
               }),
               columns: [
-                DataColumn(label: Text('Asesor')),
-                DataColumn(label: Text('Nombre')),
-                DataColumn(label: Text('Centro')),
-                DataColumn(label: Text('Fecha')),
-                DataColumn(label: Text('Folio ID')),
-                DataColumn(label: Text('Observaciones')),
-                DataColumn(label: Text('Imágenes')),
+                DataColumn(label: SelectableText('Asesor')),
+                DataColumn(label: SelectableText('Nombre')),
+                DataColumn(label: SelectableText('Centro')),
+                DataColumn(label: SelectableText('Fecha')),
+                DataColumn(label: SelectableText('Folio ID')),
+                DataColumn(label: SelectableText('Observaciones')),
+                DataColumn(label: SelectableText('Imágenes')),
               ],
               rows: instalados.map((instalado) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(instalado.asesor)),
+                    DataCell(SelectableText(instalado.asesor)),
                     DataCell(FutureBuilder<String>(
                       future: _reporteService.getUserName(instalado.asesor),
-                      builder: (context, snapshot) {
+                      builder: (conSelectableText, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return CircularProgressIndicator();
                         } else if (snapshot.hasError) {
-                          return Text('Error');
+                          return SelectableText('Error');
                         } else {
-                          return Text(snapshot.data ?? 'N/A');
+                          return SelectableText(snapshot.data ?? 'N/A');
                         }
                       },
                     )),
-                    DataCell(Text(instalado.centro)),
-                    DataCell(Text(instalado.formatTimestamp(instalado.fecha))),
-                    DataCell(Text(instalado.folioID)),
-                    DataCell(Text(instalado.observaciones)),
+                    DataCell(SelectableText(instalado.centro)),
+                    DataCell(SelectableText(
+                        instalado.formatTimestamp(instalado.fecha))),
+                    DataCell(SelectableText(instalado.folioID)),
+                    DataCell(SelectableText(instalado.observaciones)),
                     DataCell(
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -210,13 +213,13 @@ class ReportesScreen extends StatelessWidget {
   Widget _buildRetiradosTable() {
     return StreamBuilder<List<Retirado>>(
       stream: _reporteService.getRetirados(),
-      builder: (context, snapshot) {
+      builder: (conSelectableText, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: SelectableText('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No hay datos disponibles'));
+          return Center(child: SelectableText('No hay datos disponibles'));
         } else {
           final retirados = snapshot.data!;
           return SingleChildScrollView(
@@ -227,36 +230,36 @@ class ReportesScreen extends StatelessWidget {
                 return AppColors.secondary.withOpacity(0.7);
               }),
               columns: [
-                DataColumn(label: Text('Asesor')),
-                DataColumn(label: Text('Nombre')),
-                DataColumn(label: Text('Centro')),
-                DataColumn(label: Text('Fecha Retiro')),
-                DataColumn(label: Text('Folio ID')),
-                DataColumn(label: Text('Observaciones')),
-                DataColumn(label: Text('Imágenes')),
+                DataColumn(label: SelectableText('Asesor')),
+                DataColumn(label: SelectableText('Nombre')),
+                DataColumn(label: SelectableText('Centro')),
+                DataColumn(label: SelectableText('Fecha Retiro')),
+                DataColumn(label: SelectableText('Folio ID')),
+                DataColumn(label: SelectableText('Observaciones')),
+                DataColumn(label: SelectableText('Imágenes')),
               ],
               rows: retirados.map((retirado) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(retirado.asesor)),
+                    DataCell(SelectableText(retirado.asesor)),
                     DataCell(FutureBuilder<String>(
                       future: _reporteService.getUserName(retirado.asesor),
-                      builder: (context, snapshot) {
+                      builder: (conSelectableText, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return CircularProgressIndicator();
                         } else if (snapshot.hasError) {
-                          return Text('Error');
+                          return SelectableText('Error');
                         } else {
-                          return Text(snapshot.data ?? 'N/A');
+                          return SelectableText(snapshot.data ?? 'N/A');
                         }
                       },
                     )),
-                    DataCell(Text(retirado.centro)),
-                    DataCell(
-                        Text(retirado.formatTimestamp(retirado.fechaRetiro))),
-                    DataCell(Text(retirado.folioID)),
-                    DataCell(Text(retirado.observaciones)),
+                    DataCell(SelectableText(retirado.centro)),
+                    DataCell(SelectableText(
+                        retirado.formatTimestamp(retirado.fechaRetiro))),
+                    DataCell(SelectableText(retirado.folioID)),
+                    DataCell(SelectableText(retirado.observaciones)),
                     DataCell(
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -285,7 +288,7 @@ class ReportesScreen extends StatelessWidget {
         width: 50,
         height: 50,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
+        errorBuilder: (conSelectableText, error, stackTrace) {
           return Icon(Icons.broken_image);
         },
       ),
